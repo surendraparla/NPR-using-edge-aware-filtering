@@ -7,3 +7,9 @@ an artistic rendering of that input imagery (for example in a
 watercolor, painterly or sketched style).In our project we wish
 to accomplish this by using edge aware filters. Edge aware
 filters blurs the image without effecting the edges.
+
+Commands to run the project
+Image = imread('taj.jpg')
+imshow(Image)
+Out = cartoonize(Image)
+figure, imshow(Out)
