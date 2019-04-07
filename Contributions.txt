@@ -1,4 +1,0 @@
-Contributions:
-1. Praveen    --  Interpolation Convolution Filter module, cartoonize module, Latex Coding
-2. Surendra   --  Normalised Convolution Filter module, edge detection module, report 
-3. Sai Laxman --  Recursive Filter module, quantizaton module, report 
