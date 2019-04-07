@@ -9,7 +9,11 @@ to accomplish this by using edge aware filters. Edge aware
 filters blurs the image without effecting the edges.
 
 Commands to run the project
-Image = imread('taj.jpg')
-imshow(Image)
-Out = cartoonize(Image)
-figure, imshow(Out)
+
+Image = imread('taj.jpg');
+
+imshow(Image);
+
+Out = cartoonize(Image);
+
+figure, imshow(Out);
