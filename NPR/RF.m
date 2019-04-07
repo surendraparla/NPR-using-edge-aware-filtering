@@ -13,7 +13,7 @@ function F = RF(image, sigma_s, sigma_r, num_iter)
     if ~exist('num_iter', 'var')
         num_iter = 3;
     end
-    [h, w, num_channels] = size(J);
+    [h, w, num_channels] = size(I);
 
     % Compute the domain transform (Equation 11 of our paper)
     % Estimate horizontal and vertical partial derivatives using finite
