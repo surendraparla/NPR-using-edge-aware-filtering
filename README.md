@@ -11,9 +11,9 @@ filters blurs the image without effecting the edges.
 Commands to run the project
 
 Image = imread('taj.jpg');
-
 imshow(Image);
-
 Out = cartoonize(Image);
-
 figure, imshow(Out);
+
+The additional parameters are mentioned in the code and commented.
+The code is well documented and self explanatory.
