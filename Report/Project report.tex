@@ -1,6 +1,7 @@
 \documentclass[conference]{IEEEtran}
 
 \usepackage{graphicx}
+\usepackage{amssymb}
 
 \begin{document}
 \title{Non-Photorealistic rendering using edge aware filters}
@@ -35,6 +36,17 @@
  	\caption{Idea of Cartoonization}
  	\label{fig:Idea}
  \end{figure}
+ 
+ \section{Domain Transform}
+ For  deriving  an  isometric  1D  transform,  let $I: \Omega \rightarrow \mathbb{R}$ ,$\Omega  =[0,+\infty) \subset \mathbb{R}$, be a 1D signal, which defines a curve C in $\mathbb{R}^2$ by the  graph(x,I(x)),  for $x \in \Omega$ (Figure  2,  left).   Our  goal  is  to find a transform $t:\mathbb{R}^2 \rightarrow \mathbb{R}$ which preserves, in $\mathbb{R}$, the original distances between points on C,  given by some metric.   Thus,  let S={x0,x1,...,xn} be a sampling of $\Omega$ , where $x_{i+1}=x_i+h$,for some sampling interval h.  We seek a transform t that satisfies $|t(x_i,I(x_i))-t(x_j,I(x_j))|=\parallel(x_i,I(x_i))-(x_j,I(x_j))\parallel $, where $x_i,x_j \in S$ ,$\mid . \mid$ is the absolute value operator, and $\parallel .\parallel$ is some cho-sen metric.  For simplicity, we use the nearest-neighbor $l_1$ norm; thus,t only needs to preserve the distances between neighboring samples $x_i$ and $x_i+1$.  As we will soon show, this choice gives riseto the geodesic metric.   Finally,  let $ct(x)  =t(\hat{x})  =t(x,I(x))$.To be isometric,  the desired transform must satisfy the following equality (in $l_1$ norm).
+ $$ct(x+h)-ct(x) = h+\mid I(x+h)- I(x) \mid$$
+ which states that the Euclidean distance between neighboring samples  in  the  new  domain  ($\mathbb{R}$)  must  equal  the$l_1$ distance  between them in the original domain ($\mathbb{R}^2$).  To avoid the need for the absolute value operator on the left of above equation, we constrain $ct$ to be monotonically increasing -i.e.,$ct(x+h) \geq ct(x)$. Dividing both sides of above equation by hand taking the limit as $h \rightarrow 0$we obtain
+ $$ct`(x) = 1 +\mid I`(x) \mid$$
+ where $ct`(x)$ denotes the derivative of $ct(x)$ with respect to $x$.  Integrating above equation on both sides and letting $ct(0) = 0$, we get
+ $$ct(u) = \int_0^u1 + \mid I`(x) \mid dx,u \in \Omega$$
+ Intuitively, ct is “unfolding” the curve C defined in $\mathbb{R}^2$ into $\mathbb{R}$, while preserving the distances among neighboring samples.   Moreover,  for  any  two  points u and w in $\Omega$ ,$w \geq u$,  the distance between them in the new domain is given by
+$$ct(w)-ct(u) = \int_u^w1 + \mid I`(x) \mid dx$$
+which is the arc length of curve C in the interval [u,w], under the $l_1$ norm.   As  such,  the  transformation given  by above equation preserves the geodesic distance between all points on the curve.  A similar derivation is possible for the$l_2$ norm or perhaps other metrics.
  
  \section{Edge aware filtering}
  \subsection{Normalized convolution}
@@ -133,6 +145,7 @@ where the former is our solution since $a \in (0,1)$
  \section{Results}
  Figure \ref{fig:inputCartoon} represents the input for cartoon.
  Figure \ref{fig:outputCartoon} represents the output for cartoon.
+ These results are obtained using RF filter for smothening. 
  
  \begin{figure}
  	\includegraphics[width = \linewidth]{taj.jpg}
