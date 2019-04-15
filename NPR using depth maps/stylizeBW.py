@@ -2,7 +2,7 @@ import cv2
 import numpy
 from Visibility import visibility
 
-def normal_stylize(filename,N,points):
+def stylize_bw(filename,N,points):
     # Creating the L-channel
     img = cv2.imread(filename)
     cv2.imshow(filename[:-4]+'_input',img)
@@ -30,7 +30,7 @@ def normal_stylize(filename,N,points):
             for j in range(img_L.shape[1]):
                 q = (i,j,depth[i][j])
                 if(visibility(points[n],q,depth)):
-                    d_img[n][i][j] = img_L[i][j]
+                    d_img[n][i][j] = 255
 
     f_d_img = numpy.zeros(img_L.shape,dtype = 'float64')
     for i in range(N):

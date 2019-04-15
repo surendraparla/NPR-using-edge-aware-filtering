@@ -2,7 +2,7 @@ import cv2
 import numpy
 from Visibility import visibility
 
-def normal_stylize(filename,N,points):
+def stylize_lines(filename,N,points):
     # Creating the L-channel
     img = cv2.imread(filename)
     cv2.imshow(filename[:-4]+'_input',img)
@@ -22,6 +22,18 @@ def normal_stylize(filename,N,points):
     base_N = base/255
     detail_N = detail/255
     depth = F_b*base_N + F_d*detail_N
+
+    #Creating random points
+    no_rpoints = 300
+    rpoints = numpy.random.rand(no_rpoints,2)
+    rpoints[:,0] = rpoints[:,0]*(depth.shape[0]-1)
+    rpoints[:,1] = rpoints[:,1]*(depth.shape[1]-1)
+    rpoints = rpoints.astype(int)
+
+    #increasing depth of random points
+    for i in range(no_rpoints):
+        point = rpoints[i]
+        depth[point[0]][point[1]] = max(points[:,2])
 
     #Creating new image based on visibility.
     d_img = numpy.zeros((N,img_L.shape[0],img_L.shape[1]),dtype = img_L.dtype)
