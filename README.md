@@ -1,4 +1,5 @@
 # NPR-using-edge-aware-filtering
+## About
 Non-photorealistic rendering (NPR) is an area of computer
 graphics that focuses on enabling a wide variety of expressive
 styles for digital art. The input to a two dimensional NPR
@@ -8,13 +9,13 @@ watercolor, painterly or sketched style).In our project we wish
 to accomplish this by using edge aware filters. Edge aware
 filters blurs the image without effecting the edges.
 
-Commands to run the project
-'''
+## Commands to run the project
+```
 Image = imread('taj.jpg');
 imshow(Image);
 Out = cartoonize(Image);
 figure, imshow(Out);
-'''
+```
 The additional parameters are mentioned in the code and commented.
 The code is well documented and self explanatory.
 
@@ -29,7 +30,7 @@ Python3 installed with numpy and openCV modules.
 4) Specify number of light sources with their coordinates.
 5) an output image with name filename_out.jpg will be created in the folder.
 ### Example:
-'''
+```
 python main.py
 Please enter the number of type of stylization you want:
 1)normal stylization
@@ -39,4 +40,4 @@ Please enter the number of type of stylization you want:
 Enter filename with extension :Buddha.jpg
 Enter number of light sources :1
 give co-ordinates of light source-1 :10,10,1.2
-'''
+```
