@@ -17,7 +17,7 @@
 \end{IEEEkeywords}
 
 \section{introduction} \label{s1}
- Non-photorealistic rendering (NPR) is an area of computer graphics that focuses on enabling a wide variety of expressive styles for digital art. The input to a two dimensional NPR system is typically an image or video. The output is a typically an artistic rendering of that input imagery (for example in a watercolor, painterly or sketched style).In our project we wish to accomplish this by using edge aware filters. Edge aware filters blurs the image without effecting the edges. 
+ Non-photorealistic rendering (NPR) is an area of computer graphics in which an image is modified to create attractive digital art and effects. The input to a two dimensional NPR system is typically an image or video. The output is a typically an artistic rendering of that input imagery (for example in a watercolor, painterly or sketched style).In our project we wish to accomplish this by using edge aware filters. Edge aware filters blurs the image without effecting the edges. 
   
  \section{General Idea}
  The general idea of how it is implemented is as follows:
@@ -38,25 +38,38 @@
  \end{figure}
  
  \section{Domain Transform}
- For  deriving  an  isometric  1D  transform,  let $I: \Omega \rightarrow \mathbb{R}$ ,$\Omega  =[0,+\infty) \subset \mathbb{R}$, be a 1D signal, which defines a curve C in $\mathbb{R}^2$ by the  graph(x,I(x)),  for $x \in \Omega$ (Figure  2,  left).   Our  goal  is  to find a transform $t:\mathbb{R}^2 \rightarrow \mathbb{R}$ which preserves, in $\mathbb{R}$, the original distances between points on C,  given by some metric.   Thus,  let S={x0,x1,...,xn} be a sampling of $\Omega$ , where $x_{i+1}=x_i+h$,for some sampling interval h.  We seek a transform t that satisfies $|t(x_i,I(x_i))-t(x_j,I(x_j))|=\parallel(x_i,I(x_i))-(x_j,I(x_j))\parallel $, where $x_i,x_j \in S$ ,$\mid . \mid$ is the absolute value operator, and $\parallel .\parallel$ is some cho-sen metric.  For simplicity, we use the nearest-neighbor $l_1$ norm; thus,t only needs to preserve the distances between neighboring samples $x_i$ and $x_i+1$.  As we will soon show, this choice gives riseto the geodesic metric.   Finally,  let $ct(x)  =t(\hat{x})  =t(x,I(x))$.To be isometric,  the desired transform must satisfy the following equality (in $l_1$ norm).
- $$ct(x+h)-ct(x) = h+\mid I(x+h)- I(x) \mid$$
- which states that the Euclidean distance between neighboring samples  in  the  new  domain  ($\mathbb{R}$)  must  equal  the$l_1$ distance  between them in the original domain ($\mathbb{R}^2$).  To avoid the need for the absolute value operator on the left of above equation, we constrain $ct$ to be monotonically increasing -i.e.,$ct(x+h) \geq ct(x)$. Dividing both sides of above equation by hand taking the limit as $h \rightarrow 0$we obtain
- $$ct`(x) = 1 +\mid I`(x) \mid$$
- where $ct`(x)$ denotes the derivative of $ct(x)$ with respect to $x$.  Integrating above equation on both sides and letting $ct(0) = 0$, we get
- $$ct(u) = \int_0^u1 + \mid I`(x) \mid dx,u \in \Omega$$
- Intuitively, ct is “unfolding” the curve C defined in $\mathbb{R}^2$ into $\mathbb{R}$, while preserving the distances among neighboring samples.   Moreover,  for  any  two  points u and w in $\Omega$ ,$w \geq u$,  the distance between them in the new domain is given by
-$$ct(w)-ct(u) = \int_u^w1 + \mid I`(x) \mid dx$$
-which is the arc length of curve C in the interval [u,w], under the $l_1$ norm.   As  such,  the  transformation given  by above equation preserves the geodesic distance between all points on the curve.  A similar derivation is possible for the$l_2$ norm or perhaps other metrics.
+For any1D signal we can use a transform f such that the original distances between the points are preserved. I.e,.
+$$\mid f(x_i,I(x_i))-f(x_j,I(x_j)) \mid = \parallel (x_i,I(x_i))- (x_j,I(x_j)) \parallel $$
+Where f is the transform, $x_i$ is the position and $I(x_i)$ is the intensity at that point and the $\parallel . \parallel$ represents the modulus. This Domain transfer reduces the complexity and dimensions of the work without loss of edge information.
+	\subsection{Steps for Domain transform}
+	\begin{enumerate}
+		\item First we take the distance among the elements. In continuous domain it done using differentiation ands in discrete 				domain it is simple difference. In this project we considered L1 norm as the distance measure.
+		$$ cf'(x) = 1 + \mid I'(x) \mid $$
+		\item If the image is multi channel then we take the summation along all the channels.
+		$$ cf'(x) = 1 + \sum_{k=1}^{c} \mid I'(x) \mid dx $$
+		\item Now we integrate the transformed values which is equivalent to cumulative sum in discrete domain.
+		$$ cf’(x_i) = cf’(x_i-1) + cf’(x_i) $$
+		\item As, the transformed values do not consider any spacial variance or range variance we scale the obtained values 				using the ratio of spacial and range variance.
+		$$ cf(u) = 1 + \frac{ {\sigma }_s}{\sigma_r} \sum_{k=1}^{c} \mid I'(x) \mid $$
+		\item Now, the obtained values are the transformed values and now we can apply the filters on these values.
+	\end{enumerate}
+In the above steps $cf’$ represents transformed domain values, $I(x_i)$ is the intensity at a particular point, ${\sigma}_s$ represents the spacial variance and $\sigma_r$ is the range variance.
  
  \section{Edge aware filtering}
  \subsection{Normalized convolution}
-Filtering the non-uniformly sampled signal $I_w(ct(x))$ in $\Omega_w$ can be seen as filtering a uniformly sampled signal with missing samples (Figure 8, left). This scenario has been studied by Knutsson and Westin [1993] in the context of data uncertainty, where they showed that optimal filtering results, in the mean square sense, are obtained by normalized convolution (NC). For a uniform discretization $D(\Omega)$ of the original domain $\Omega$, NC describes the filtered value of a sample $p \in D(\Omega)$ as
-$$J(p) = \frac{1}{K_p}\sum_{q \in D(\Omega)}I_qH(t(\hat{p}),t(\hat{q}))$$
-where $K_p = \sum_{q \in D(\Omega)}H(t(\hat{p}),t(\hat{q}))$  is a normalization factor for p, and $t(\hat{p}) = ct(p)$. For N samples and an arbitrary kernel H, the cost of evaluating is $O(N^2 )$. However, as ct(x) is monotonically increasing, we use an efficient moving-average approach [Dougherty 1994] to perform NC with a box filter in O(N) time. The box kernel is defined as
-$$H(t(\hat(p)),t(\hat(q))) = \delta{|t(\hat(p)) - t(\hat(p))| \leq r}$$ 
-where $r = \sigma_H \sqrt{ 3}$ is the filter radius, and $\delta$ is a boolean function that returns 1 when its argument is true, and 0 otherwise. This box kernel has a constant radius in $\Omega_w$, but a space-varying and non-symmetric radius in $\Omega$, where its size changes according to the similarity between p and its neighborhood in the image manifold MI.. This can be interpreted as an estimate of which neighbors belong to the same population as p. The box kernel is then a robust estimator of the population mean, with connections to robust anisotropic diffusion and bilateral filtering.
- Figure \ref{fig:NC_sample}Filtering in the transformed domain. (Left) Normalized convolution (NC). (Center) Interpolated convolution (IC). (Right) Their interpretation: NC box kernel in blue, IC box kernel in red.\\
- The cost of evaluating Equation 1 using the box kernel from Equation 2 is linear in the number of samples. 
+ It is type of averaging filter and this can be understood as filtering a non-uniform sampled sequence is equivalent to filtering uniform sample sequences with missing samples. We apply this in transformed domain and output can be given by
+ $$ Y[u] = \frac{1}{N}\sum_{x \in S} I(x)h(cf(u),cf(x))$$
+ $$ h(cf(u),cf(x)) = \delta ( \mid cf(u) - cf(x) \mid \leq r ) $$
+ 
+ \begin{itemize}
+ \item Input sample sequence$ X = {1, 2, 3, 4, 5, 6,  7}$
+ \item Intensities at corresponding points $ I(x) =  {2, 3, 4,50,60,51,53}$
+ \item In transformed domain $ct(u)= {0, 2, 4,51,62,74,77}$
+ \item On applying IC: with $ r = 10$
+ \item $ Y(u)= {5.363,6.3,7.21,49.83,55.48,54.7,53.51}$
+ \end{itemize}
+ 
+ As you can see here sudden intensity changes are preserved.
  
  \begin{figure}
  	\includegraphics[width = \linewidth]{NC_sample.png}
@@ -66,54 +79,20 @@ where $r = \sigma_H \sqrt{ 3}$ is the filter radius, and $\delta$ is a boolean f
  
  
  \subsection{Interpolated convolution}
-  Another option when dealing with irregularly sampled data is to use interpolation for approximating the original continuous function
-[Piroddi and Petrou 2004]. . Filtering Lw is performed by continuous convolution:
-$$J(p) = \int_{\Omega_w}L_w(x)H(t(\hat(p)),x) dx$$
-where H is a normalized kernel. Interpolated convolution has an
-interesting interpretation: a linear diffusion process working on the
-Signal. Implementation For a box filter,the above equation can be evaluated
-for all pixels in O(N) time. This is achieved by a weighted moving average
-. The normalized box kernel is given by
-$$H(t(\hat(p)),x) = \delta{|t(\hat(p))-x| \leq r}/2r$$
-
-where $r = \sigma_H \sqrt{3}$ is the filter radius. Substituting it in above equation.
-
-$$ J(p) = \frac{1}{2r}\int_{t(\hat(p))-r}^{t(\hat(p))+r} L_w(x) dx $$
-
-The linearly-interpolated signal Lw does not need to be uniformly
-resampled, since the area under its graph can be explicitly computed
-using the trapezoidal rule.
-
+Interpolation Convolution (IC) preserves the edges and smoothens the image. In the interpolation Convolution method we use linear interpolation to estimate the missing values. Then we find the area across the box filter with fixed radius.
+For example, if we consider the value 50 and radius 10, we consider the values at 40 and 60. If they are present then consider them  or else estimate them using linear interpolation.
+Now find the area As, we know that the area of a trapezoid is 0.5*h*(a+b) where h is the height and a and b are the heights of two ends. Now, we calculate the total area and divide it by the width of box filter.  This is for a one dimensional signal. The time complexity of this process is O(N).
+$$ H(f(\hat{p},x),x) = \delta ( \mid f(\hat{p}-x \mid \leq r)/2r $$
+This is the normalised equation for box filter. Where delta represents the total area under the curve and r is the radius of box filter which is consider as $ \sigma_H \sqrt{3} $ where $\sigma$ is the standard deviation. \\
+ For a 2-D signal we apply this for all the rows independently and then apply this for the columns independently. This is 1 iteration and we get take more than one iteration as well. It is optimally chosen as 3 in this project.
+ 
 
   \subsection{Recursive filtering}
-  	Filtering is an important and much used discipline in image processing. The goal is either to remove unwanted components such as noise, or to enhance certain features, or simply as an artistic modification. As we are discussing about fast edge aware filtering approaches, recursive filtering is one of them.Recursive filters are more efficient than straight convolutions even with moderate kernel sizes. A simple blur with a 125x125 pixels kernel, if implemented in a naive way, would be extremely slow even with today's advanced hardware. Recursive filters can handle such a situation dramatically faster.Let us talk about actual implementation of recursive filters.
-For a discrete signal I[n] = I(xn),  non edge-preserving filtering can be performed using a 1st-order recursive filter as 
+  	As the name suggests recursive mean using previous outputs to find the present output.Here we do not need to perform long convolution as did in the Normalized Convolution and interpolated convolution.This recursive filtering answers the question of computational complexity that is reduces the number of operations required to compute at some position in the image.We can achieve this by using previously convoluted output rather than convoluting the whole.\\
+  	 For example let us see how it works for 1-D discrete signals.Let $x[n]$ be an input signal and output for recursive function is given $y[n] = (1-c)x[n] + cy[n-1]$ where $c$ is called feed-back coefficient which is always less than one. As we see here $(1-c)$th fraction depends on current value and $(c)$th fraction part depends on previous output.Here as we work on transformed domain. 
+Let us see recursive edge preserving filter function as we work here in transformed domain we consider ‘$k$’ is the distance measured in transformed domain between adjacent pixels.We define recursive edge aware filtering output $y[n]$ for given $x[n]$ is $y[n] = (1-c^k)x[n]+(c^k)y[n-1]$.As ‘$k$’ increases $c^k$ tends zero that is it depends mostly on current value $x[n]$ and thus stops the propagation of previous values to next output and  as $k$ is very large means high difference in pixel intensities and edge is preserved. To get even or odd symmetric response we apply our recursive filter twice that is first we do it from left to right and next we do it right to left for 1-D signal. \\
+	As image is two dimensional discrete signal we consider each row as 1-D signal apply on it. After finishing of all rows. We apply this on each column until we finish every column. This complete operation of applying on all rows and columns is called iteration
 
-$$J[n] = (1 - a)  I[n] + a J[n - 1] $$
-
-where $a \in [0, 1]$ is a feedback coefficient. Usually IIR filters have recursive feedback system.This filter has an infinite impulse response (IIR) with exponential decay: an impulse of magnitude m at position i generates a response of magnitude $m (1 - a) a^(j - i)$ at $j \geq  i$
-
-Note that j - i can be interpreted as the distance between samples $x_i$ and $x_j$ , 
-assuming a unitary sampling interval. Based on this observation, a recursive edge-preserving filter can be defined in the transformed domain as 
-
-$$J[n] = (1 - a^d ) I[n] + (a^d *J[n - 1]) $$
-
-where $d = ct(x_n) - ct(x_{n-1})$ is the distance between neighbor samples $x(n)$ and x(n-1) in the transformed domain . As d increases, a d goes to zero, stopping the propagation chain and, thus,preserving edges.This can be interpreted as a geodesic propagation on the image lattice. The impulse response of equation(2) is not symmetric, since it only depends on previous inputs and outputs (it is a causal filter). A symmetric response is achieved by applying the filter twice: for a 1D signal, equation(2) is performed left-to-right (top-to bottom) and then right-to-left (bottom-to-top). The feedback coefficient of this filter is computed from the desired filter variance as $a = \exp^{(-\frac{ \sqrt{2}}{\sigma_H})}$ can be derived as follows
-\\
-The continuous equivalent of the recursive kernel is \\
-$f(x) = (1-a)a^x$, $x \in [0,\infty)$ , $ a\in (0,1)$;\\
-where x represents the distance between samples and a is the feedback coefficient. f(x) is not normalized since\\
-$$\int_0^\infty f(x)dx = - \frac{1-a}{\log(a)}$$
-Normalizing f we obtain $f(x) = -\log(a)a^x$.The first and second moments of f are, respectively:
-$$<f> = -\log(a) \int_0^\infty xa^xdx = -\frac{1}{\log(a)}$$
-$$<f^2> = -\log(a) \int_0^\infty x^2a^xdx = -\frac{2}{\log(a)^2}$$
-The variance of f is then given by 
-$$Var(f) = <f^2>-<f>^2 = \frac{1}{\log(a)^2}$$
-Since the signal is filtered twice with f(left-to-right and right-to-left), the total variance of the filter is 2 Var(f). Given the desired variance$\sigma_H^2$:
-$$\sigma_H^2 = 2Var(f) = \frac{2}{\log(a)^2}$$
-we solve for a and find \\
-$a = \exp(-\frac{\sqrt{2}}{\sigma_H})$ and $a = \exp(-\frac{\sqrt{2}}{\sigma_H})$\\
-where the former is our solution since $a \in (0,1)$
 
 \begin{figure}
  	\includegraphics[width = \linewidth]{input_image.png}
@@ -135,17 +114,71 @@ where the former is our solution since $a \in (0,1)$
  	\caption{IC output}
  \end{figure}
  
+ \section{Filtering 2D signals}
+ 	All the above mentioned steps work only for the 1D signals. So, we apply filtering iteratively once for the rows and the once for all the columns. But, this process leads to the formation of strips. When we filter rows horizontal stripes are formed and similarly vertical stripes are formed when we filter columns. But, the catch here is that horizontal stripes vanish when we filter columns and new vertical stripes are formed. The stripes formed are proportional to the variance. So, we decrease the variance exponentially so that the finally it tends to zero at the last iteration. The variance used is given by the formula,
+ 	$${\sigma_H}_j = \sigma_H \sqrt{3} \frac{2^{N-j}}{\sqrt{4^N-1}}$$
+ 	where, $N$ is number of iterations.\\
+ 	$j$ is the present iteration\\
+ 	and $\sigma_H$ is the variance.
+ 	
+ 
  \section{DoG edges}
- 	A computationally simple approximation is the difference-of-Gaussians(DoG) operator.we define our DoG edges using a slightly smoothed step function. The parameter $\tau$ in the equation 4 gives amount of center-surround difference required for cell activation, and $\phi_e$ controls the sharpness of the activation falloff. In the following, we define $S_{\sigma_e} = S(x,\sigma_e)$ and $S_{\sigma_r} = S(x,\sqrt{1.6}\sigma_r)$.
- 	$$D(x,\sigma_e,\tau,\phi_e) = 1  if   (S_{\sigma_e}-\tau.S_{\sigma_r}) > 0$$
- 	$$D(x,\sigma_e,\tau,\phi_e) = 1+\tanh(\phi_e.(S_{\sigma_e}-\tau.S_{\sigma_r}))  otherwise$$
- 	$$S(y,\sigma_e) = \frac{1}{2\pi\sigma_e^2}\int f(x)c(y-x,\sigma_e) dx $$
- 	Here,$\sigma_e$ determines the spatial scale for edge detection. The larger the value, the coarser the edges that are detected. The threshold level $\tau$ determines the sensitivity of the edge detector. For small values of $\tau$ , less noise is detected, but real edges become less prominent.As$\tau$ approaches 1, the filter becomes increasingly unstable. We use $\tau=0.98$ throughout.  The falloff parameter,$\phi_e$, determines the sharpness of edge representations, typically $\phi_e \in [0.75,5.0]$. For $n_b$ bilateral iterations, we extract edges after $n_e<n_b$ iterations toreduce noise.Typically, $n_e \in {1,2}$ and $n_b \in {3,4}$.
+ 	DoG means difference of Gaussians. First the image is smothened with a gaussian filter of variance say $\sigma$. Let us call the smoothened image as $I_1$ . We again smoothen the image with gaussian filter with standard deviation $\sqrt{1.6} \sigma$. Let us call the second image as $I_2$. The difference of these two images are taken and following  point wise operation is performed.
+ 	$$R = I_1 -  \tau I_2$$
+ 	$$D(x) = 1 if x \geq 0$$
+ 	$$D(x)  = 1 + tanh(\phi_e(x)) otherwise$$
+ 	This operation makes pixel to have values between 0 to 1.
+ 
+ \section{Depth Stylization}
+  The core of the algorithm lies in the approximation of the depth in the image. Since, we have only the intensity values it is not possible to get the exact depth in the image. But, our human vision system cannot realize even the large scale transformation errors along the view axis and . So, accurate depth information is not needed.
+  \subsection{Algorithm}
+  \begin{enumerate}
+  \item  Convert the RGB image to CIELab format.
+  \item Apply the bilateral filter on the L channel and find the base layer.
+  \item Find the depth layer of the image using the relation
+  $$I = B +D$$
+  where, I is the input image\\
+  B is the base layer of the image \\
+  and D is the detail layer
+  \item  We get the final image with the linear combination of base and depth layer images.
+  $$ Z(i,j) = F_bB(i,j) +F_dD(i,j)$$
+  where, $F_b$ and $F_d$ are the weight factors in the range (0,1).\\
+  We can select the values of $F_b$ and $F_d$ manually.
+  \item  Now, the depth map image obtained serves as the input to the relighting section.
+  \end{enumerate}
+  
+  \subsection{Visibility function}
+  First an initial light source is defined let its coordinates be $(x,y,z)$. Now a point is said to be visible if it has no other point obstructing its path. Let us consider a point $(x_1,y_1,z_1)$. Construct a straight line from $(x_0,y_0,z_0)$ to $(x_1,y_1,z_1)$  if there is a point $(x_2,y_2,z_2)$ such that depth at $(x_2,y_2)$ is greater than $z_2$ then that point is not visible.
+  
+  \subsection{Halftoning}
+  Halftoning is simple assigning the 1 to all the visible pixels and black for the rest of the pixels.By this way a unique black and white stylization of the image is achieved
+  
+  \subsection{depth stylization}
+  Assigning colour only to the pixels that are visible to the light source and black to rest of the pixels. This adds additional shadows to the image and creates a stylized look.
+  
+  \subsection{line effect}
+   Some random points are selected in the image and its depth is increased to a large value. this created more dark line diverging from the light source.
+   
+   \subsection{Multitoning}
+   Multiple light sources are placed in the image and intensity at each pixel is changed as follows.
+   $$I_p = \frac{x}{N}I$$
+   where, x is the number of light sources from which the point is visible\\
+   N is the total number of light sources\\
+   I is the intensity at that point\\ 
  
  \section{Results}
- Figure \ref{fig:inputCartoon} represents the input for cartoon.
- Figure \ref{fig:outputCartoon} represents the output for cartoon.
- These results are obtained using RF filter for smothening. 
+ Figure \ref{fig:inputCartoon} represents the input for cartoon.\\
+ Figure \ref{fig:outputCartoon} represents the output for cartoon.\\
+  Figure \ref{fig:inputCartoon2} represents the input for cartoon using different image.\\
+ Figure \ref{fig:outputCartoon2} represents the output for cartoon using different image.\\
+ These results are obtained using RF filter for smothening. \\
+ Figure \ref{fig:inputDStylization} represents the input for depth stylization.\\
+  Figure \ref{fig:outputDStylization} represents the output for depth stylization.\\
+  Figure \ref{fig:outputHalf} represents the output for halftoning\\
+ Figure \ref{fig:outputMulti} represents the output for multitoning\\
+ Figure \ref{fig:outputLines} represents the output for Line Effect\\
+ 
+ 
  
  \begin{figure}
  	\includegraphics[width = \linewidth]{taj.jpg}
@@ -159,16 +192,51 @@ where the former is our solution since $a \in (0,1)$
  	\label{fig:outputCartoon}
  \end{figure}
  
- \section{Limitations}
- As most other fast edge-preserving filters, our 2D filters are not rotationally invariant (i.e., filtering a rotated image and rotating a filtered image may produce different results). This behaviour may cause problems for applications that rely on content matching
-Our 1D edge-preserving filters can be applied to other kinds of signals and to higher-dimensional data. Other possible directions for exploration involve applying our filters on meshes, and their implementation in the frequency domain.
-
+  \begin{figure}
+ 	\includegraphics[width = \linewidth]{taylor.jpg}
+ 	\caption{input image for cartoonization 2}
+ 	\label{fig:inputCartoon2}
+ \end{figure}
  
- \section{Conclusion and future work}
-We have presented a new approach for performing high-quality edge-preserving filtering of images. Our solution is based on a transform that defines an isometry between curves on the 2D image manifold in 5D and the real line. This transform preserves the geodesic distance between points on the curve, adaptively warping the input signal so that 1D edge-preserving filtering can be efficiently performed in linear time. We demonstrated three realizations for our 1D edge-preserving filters, based on normalized convolution, interpolated convolution, and recursion. These filters have very distinct impulse responses, making each one more appropriate for specific application.
+   \begin{figure}
+ 	\includegraphics[width = \linewidth]{taylor_out.jpg}
+ 	\caption{output image for cartoonization 2}
+ 	\label{fig:outputCartoon2}
+ \end{figure}
+ 
 
 \section{Acknowledgement}
 We would like to thank Professor Saumik Bhattacharya for their insightful lectures which helped alot for successful completion of the project. 
+
+\begin{figure}
+ 	\includegraphics[width = \linewidth]{buddha.jpg}
+ 	\caption{input image for depth stylization}
+ 	\label{fig:inputDStylization}
+ \end{figure}
+
+ \begin{figure}
+ 	\includegraphics[width = \linewidth]{buddha_out2.jpg}
+ 	\caption{output for depth stylization}
+ 	\label{fig:outputDStylization}
+ \end{figure} 
+ 
+  \begin{figure}
+ 	\includegraphics[width = \linewidth]{buddha_out_bw.jpg}
+ 	\caption{output for halftoning}
+ 	\label{fig:outputHalf}
+ \end{figure} 
+ 
+   \begin{figure}
+ 	\includegraphics[width = \linewidth]{buddha_out_2sources.jpg}
+ 	\caption{output for multitoning}
+ 	\label{fig:outputMulti}
+ \end{figure}
+ 
+  \begin{figure}[t]
+ 	\includegraphics[width = \linewidth]{buddha_out_lines.jpg}
+ 	\caption{output for line effect}
+ 	\label{fig:outputLines}
+ \end{figure} 
 
 \begin{thebibliography}{9}
 \bibitem{Domain} 
